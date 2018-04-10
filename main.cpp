@@ -13,7 +13,8 @@
 #include <unordered_map>
 #include <map>
 #include <sys/ioctl.h>
-
+#include <string.h>
+#include <iostream>
 
 void Accept(int master_socket, std::map<int, User*>& users) {
 	struct sockaddr_in addr;
@@ -68,7 +69,7 @@ int main(int argc, char ** argv){
 		perror("set socket opt Failed\n");
 		return EXIT_FAILURE;
 	}
-
+	memset(&addr, 0, sizeof(addr));
 	addr.sin6_family = AF_INET6;
 	addr.sin6_addr = in6addr_any;
 	addr.sin6_port = 0;
@@ -120,17 +121,21 @@ int main(int argc, char ** argv){
 			//accept new connection
 			Accept(master_socket, users);
 		}
-		for(auto it=users.begin(); it!=users.end(); ++it){
+		for(auto it=users.begin(); it!=users.end();){
 			sd = it->first;
 			if (FD_ISSET(sd, &readfds)) {
 				//processes msg if they set user add to table
-				if(it->second->getMsg(users, users_map, chans_map)){
-					users_map[it->second->getUsername()] = it->second;
+				if(it->second->getMsg(users_map, chans_map)){
+					it = users.erase(it);
+					std::cout << users.size() << " " << users_map.size() <<
+						std::endl;
+					continue;
 				}
 			}
 			if (FD_ISSET(sd, &writefds)) {
 				it->second->sendMsg();
 			}
+			++it;
 		}
 
 
