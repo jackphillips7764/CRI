@@ -34,11 +34,13 @@ bool User::addToBuffer(std::string& stuff,
 		std::unordered_map<std::string, Chan>& chans) {
 	this->buffer += stuff;
 	std::size_t found = this->buffer.find("\n");
-	if(found != std::string::npos){
+	while(found != std::string::npos){
 		std::string send = this->buffer.substr(0, found);
 		bool res = this->processesComand(send, user_map, chans);
 		this->buffer = this->buffer.substr(found+1);
-		return res;
+		if(res)
+			return true;
+		found = this->buffer.find("\n");
 	}
 	return false;
 
