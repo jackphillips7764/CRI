@@ -1,6 +1,7 @@
 #include "User.h"
 #include <cstring>
 #include <iostream>
+#include <regex>
 #include <string>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -110,6 +111,36 @@ void User::privMsg(std::string &comand,
             this->addMsg("User not found\n");
         }
     }
+    // TODO channel message
+}
+
+void User::List(std::string &comand,
+                std::unordered_map<std::string, User *> &user_map,
+                std::unordered_map<std::string, Chan> &chans) {
+    auto channel = comand.substr(comand.find(" ") + 1);
+    if (channel[0] == '#' && chans.find(channel) != chans.end()) {
+        auto curchan = chans.find(channel);
+        auto users = (*curchan).second.users;
+        auto number = users.size();
+        std::string test = "There are currently ";
+        test += number;
+        test += " members.";
+        this->addMsg(test);
+        for (auto user : users) {
+            std::string msgusr = "* ";
+            msgusr += user->username;
+            this->addMsg(msgusr);
+        }
+    } else {
+        std::string msg2 = "There are currently ";
+        msg2 += chans.size();
+        msg2 += " channels.";
+        this->addMsg(msg2);
+        for (auto i : chans) {
+            msg2 = "* ";
+            msg2 += i.first;
+        }
+    }
 }
 
 // called with command to processes
@@ -128,13 +159,32 @@ bool User::processesComand(std::string &comand,
     int c = getCommandType(cmd);
     std::cout << "CMD: " << c << std::endl;
     switch (c) {
-    case 1:
-        this->username = comand.substr(comand.find(" ") + 1);
+    case 1: { // USER
+        auto name = comand.substr(comand.find(" ") + 1);
+        std::cmatch m;
+        std::regex re("[a-zA-Z][_0-9a-zA-Z]*");
+        if (std::regex_match(name, re)) {
+        }
+        this->username = name;
         std::cout << "USER: " << this->username << std::endl;
         user_map[this->username] = this;
         break;
-    case 2:
+    }
+    case 2: // PRIVMSG
         this->privMsg(comand, user_map, chans);
+        break;
+    case 3: // LIST
+        this->List(comand, user_map, chans);
+        break;
+    case 4: // JOIN
+        break;
+    case 5: // PART
+        break;
+    case 6: // OPERATOR
+        break;
+    case 7: // KICK
+        break;
+    case 8: // QUIT
         break;
     case 0:
         addMsg("sorry nothing ready yet" + this->username + "\n");

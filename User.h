@@ -50,9 +50,13 @@ class User {
     void privMsg(std::string &comand,
                  std::unordered_map<std::string, User *> &user_map,
                  std::unordered_map<std::string, Chan> &chans);
+    void List(std::string &comand,
+              std::unordered_map<std::string, User *> &user_map,
+              std::unordered_map<std::string, Chan> &chans);
 };
 
 class Chan {
+  public:
     std::vector<User *> users;
 
   private:
