@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <netinet/in.h>
+#include <regex>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -40,10 +41,21 @@ void Accept(int master_socket, std::map<int, User *> &users) {
 
 int main(int argc, char **argv) {
     // TODO add the shit for pass
+    std::string password1 = "";
+    if (argc > 1) {
+        std::string password = argv[2];
+        if (password.size() <= 20) {
+            std::cmatch m;
+            std::regex re("#[a-zA-Z][_0-9a-zA-Z]*");
+            if (std::regex_match(password, re)) {
+                password1 = password;
+            }
+        }
+    }
 
     // all user and chan stuff
     std::unordered_map<std::string, User *> users_map;
-    std::unordered_map<std::string, Chan> chans_map;
+    std::unordered_map<std::string, Chan *> chans_map;
     std::map<int, User *> users; /* maps form socket to user */
 
     // make new socket
@@ -130,7 +142,7 @@ int main(int argc, char **argv) {
             sd = it->first;
             if (FD_ISSET(sd, &readfds)) {
                 // processes msg if they set user add to table
-                if (it->second->getMsg(users_map, chans_map)) {
+                if (it->second->getMsg(users_map, chans_map, password1)) {
                     it = users.erase(it);
                     std::cout << users.size() << " " << users_map.size()
                               << std::endl;
